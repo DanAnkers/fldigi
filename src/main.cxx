@@ -116,6 +116,7 @@ using namespace std;
 string appname;
 
 string scDevice[2];
+string vscDevice[2];
 
 string HomeDir = "";
 string RigsDir = "";

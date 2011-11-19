@@ -890,26 +890,44 @@
               "  0: OSS; 1: PortAudio; 2: PulseAudio; 3: File I/O",                     \
               SND_IDX_NULL)                                                             \
         ELEM_(std::string, OSSdevice, "OSSDEVICE",                                      \
-              "OSS device name",                                                        \
+              "OSS device name for rig connection",                                     \
+              "")                                                                       \
+        ELEM_(std::string, voiceOSSdevice, "VOICEOSSDEVICE",                            \
+              "OSS device name for voice connection",                                   \
               "")                                                                       \
         ELEM_(std::string, PAdevice, "PADEVICE",                                        \
               "For compatibility with older versions",                                  \
               "")                                                                       \
         ELEM_(std::string, PortInDevice, "PORTINDEVICE",                                \
-              "PortAudio input device name",                                            \
+              "PortAudio input device name for rig connection",                         \
+              "")                                                                       \
+        ELEM_(std::string, VoicePortInDevice, "VOICEPORTINDEVICE",                      \
+              "PortAudio input device name for voice connection",                       \
               "")                                                                       \
         ELEM_(int, PortInIndex, "PORTININDEX",                                          \
-              "PortAudio input device index",                                           \
+              "PortAudio input device index for rig connection",                        \
+              -1)                                                                       \
+        ELEM_(int, VoicePortInIndex, "VOICEPORTININDEX",                                \
+              "PortAudio input device index for voice connection",                      \
               -1)                                                                       \
         ELEM_(std::string, PortOutDevice, "PORTOUTDEVICE",                              \
-              "PortAudio input device name",                                            \
+              "PortAudio output device name for rig connection",                        \
+              "")                                                                       \
+        ELEM_(std::string, VoicePortOutDevice, "VOICEPORTOUTDEVICE",                    \
+              "PortAudio output device name for voice connection",                      \
               "")                                                                       \
         ELEM_(int, PortOutIndex, "PORTOUTINDEX",                                        \
-              "PortAudio input device index",                                           \
+              "PortAudio output device index for rig connection",                       \
+              -1)                                                                       \
+        ELEM_(int, VoicePortOutIndex, "VOiCEPORTOUTINDEX",                              \
+              "PortAudio output device index for voice connection",                     \
               -1)                                                                       \
         ELEM_(int, PortFramesPerBuffer, "", "",  0)                                     \
         ELEM_(std::string, PulseServer, "PULSESERVER",                                  \
-              "PulseAudio server string",                                               \
+              "PulseAudio server string for rig connection",                            \
+              "")                                                                       \
+        ELEM_(std::string, VoicePulseServer, "VOICEPULSESERVER",                        \
+              "PulseAudio server string for voice connection",                          \
               "")                                                                       \
         ELEM_(int, in_channels, "INCHANNELS",                                           \
               "Number of audio input channels",                                         \
@@ -925,6 +943,12 @@
               SAMPLE_RATE_UNSET)                                                        \
         ELEM_(int, out_sample_rate, "OUTSAMPLERATE",                                    \
               "Output sample rate",                                                     \
+              SAMPLE_RATE_UNSET)                                                        \
+        ELEM_(int, voice_in_sample_rate, "VOICEINSAMPLERATE",                           \
+              "Input sample rate (Voice)",                                              \
+              SAMPLE_RATE_UNSET)                                                        \
+        ELEM_(int, voice_out_sample_rate, "VOICEOUTSAMPLERATE",                         \
+              "Output sample rate (Voice)",                                             \
               SAMPLE_RATE_UNSET)                                                        \
         ELEM_(int, sample_converter, "SAMPLECONVERTER",                                 \
               "Sample rate conversion type. Values are as follows:\n"                   \

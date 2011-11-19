@@ -57,6 +57,11 @@ static void init_oss(void)
 	if (progdefaults.OSSdevice.length() == 0 && gbuf.gl_pathc)
 		progdefaults.OSSdevice = gbuf.gl_pathv[0];
 	menuOSSDev->value(progdefaults.OSSdevice.c_str());
+	for (size_t i = 0; i < gbuf.gl_pathc; i++)
+		menuVoiceOSSDev->add(gbuf.gl_pathv[i]);
+	if (progdefaults.voiceOSSdevice.length() == 0 && gbuf.gl_pathc)
+		progdefaults.voiceOSSdevice = gbuf.gl_pathv[0];
+	menuVoiceOSSDev->value(progdefaults.voiceOSSdevice.c_str());
 	globfree(&gbuf);
 
 	glob("/dev/mixer*", 0, NULL, &gbuf);
@@ -180,12 +185,18 @@ static void init_portaudio(void)
 			i += 2;
 		}
 		// add to menu
-		if (ilist->dev->maxInputChannels > 0)
+		if (ilist->dev->maxInputChannels > 0) {
 			menuPortInDev->add(menu_item.c_str(), 0, NULL,
 					   reinterpret_cast<void *>(ilist->idx), 0);
-		if (ilist->dev->maxOutputChannels > 0)
+			menuVoicePortInDev->add(menu_item.c_str(), 0, NULL,
+					   reinterpret_cast<void *>(ilist->idx), 0);
+		}
+		if (ilist->dev->maxOutputChannels > 0) {
 			menuPortOutDev->add(menu_item.c_str(), 0, NULL,
 					    reinterpret_cast<void *>(ilist->idx), 0);
+			menuVoicePortOutDev->add(menu_item.c_str(), 0, NULL,
+					    reinterpret_cast<void *>(ilist->idx), 0);
+		}
 	}
 
 	if (progdefaults.PortInDevice.length() == 0) {
@@ -200,6 +211,18 @@ static void init_portaudio(void)
 			progdefaults.PortInDevice = progdefaults.PAdevice;
 	}
 
+	if (progdefaults.VoicePortInDevice.length() == 0) {
+		if (progdefaults.PAdevice.length() == 0) {
+			PaDeviceIndex def = get_default_portaudio_device(0);
+			if (def != paNoDevice) {
+				progdefaults.VoicePortInDevice = (*(SoundPort::devices().begin() + def))->name;
+				progdefaults.VoicePortInIndex = def;
+			}
+		}
+		else
+			progdefaults.VoicePortInDevice = progdefaults.PAdevice;
+	}
+
 	if (progdefaults.PortOutDevice.length() == 0) {
 		if (progdefaults.PAdevice.length() == 0) {
 			PaDeviceIndex def = get_default_portaudio_device(1);
@@ -210,6 +233,18 @@ static void init_portaudio(void)
 		}
 		else
 			progdefaults.PortOutDevice = progdefaults.PAdevice;
+	}
+
+	if (progdefaults.VoicePortOutDevice.length() == 0) {
+		if (progdefaults.PAdevice.length() == 0) {
+			PaDeviceIndex def = get_default_portaudio_device(1);
+			if (def != paNoDevice) {
+				progdefaults.VoicePortOutDevice = (*(SoundPort::devices().begin() + def))->name;
+				progdefaults.VoicePortOutIndex = def;
+			}
+		}
+		else
+			progdefaults.VoicePortOutDevice = progdefaults.PAdevice;
 	}
 
 	// select the correct menu items
@@ -234,6 +269,22 @@ static void init_portaudio(void)
 	}
 
 	idx = -1;
+	menu = menuVoicePortInDev->menu();
+	size = menuVoicePortInDev->size();
+	for (int i = 0; i < size - 1; i++, menu++) {
+		if (menu->label() && progdefaults.VoicePortInDevice == menu->label()) {
+			idx = i; // near match
+			if (reinterpret_cast<intptr_t>(menu->user_data()) == progdefaults.VoicePortInIndex ||
+			    progdefaults.VoicePortInIndex == -1) // exact match, or index was never saved
+				break;
+		}
+	}
+	if (idx >= 0) {
+		menuVoicePortInDev->value(idx);
+		menuVoicePortInDev->set_changed();
+	}
+
+	idx = -1;
 	menu = menuPortOutDev->menu();
 	size = menuPortOutDev->size();
 	for (int i = 0; i < size - 1; i++, menu++) {
@@ -247,6 +298,22 @@ static void init_portaudio(void)
 	if (idx >= 0) {
 		menuPortOutDev->value(idx);
 		menuPortOutDev->set_changed();
+	}
+
+	idx = -1;
+	menu = menuVoicePortOutDev->menu();
+	size = menuVoicePortOutDev->size();
+	for (int i = 0; i < size - 1; i++, menu++) {
+		if (menu->label() && progdefaults.VoicePortOutDevice == menu->label()) {
+			idx = i;
+			if (reinterpret_cast<intptr_t>(menu->user_data()) == progdefaults.VoicePortOutIndex ||
+			    progdefaults.VoicePortOutIndex == -1)
+				break;
+		}
+	}
+	if (idx >= 0) {
+		menuVoicePortOutDev->value(idx);
+		menuVoicePortOutDev->set_changed();
 	}
 }
 #else
@@ -444,20 +511,28 @@ void sound_update(unsigned idx)
 
 	// devices
 	menuOSSDev->deactivate();
+	menuVoiceOSSDev->deactivate();
 	menuPortInDev->deactivate();
+	menuVoicePortInDev->deactivate();
 	menuPortOutDev->deactivate();
+	menuVoicePortOutDev->deactivate();
 	inpPulseServer->deactivate();
+	inpVoicePulseServer->deactivate();
 
 	// settings
 	menuInSampleRate->deactivate();
+	menuVoiceInSampleRate->deactivate();
 	menuOutSampleRate->deactivate();
+	menuVoiceOutSampleRate->deactivate();
 
 	progdefaults.btnAudioIOis = idx;
 	switch (idx) {
 #if USE_OSS
 	case SND_IDX_OSS:
 		menuOSSDev->activate();
+		menuVoiceOSSDev->activate();
 		scDevice[0] = scDevice[1] = menuOSSDev->value();
+		vscDevice[0] = vscDevice[1] = menuVoiceOSSDev->value();
 		break;
 #endif
 
@@ -465,10 +540,16 @@ void sound_update(unsigned idx)
 	case SND_IDX_PORT:
 		menuPortInDev->activate();
 		menuPortOutDev->activate();
+		menuVoicePortInDev->activate();
+		menuVoicePortOutDev->activate();
 		if (menuPortInDev->text())
 			scDevice[0] = menuPortInDev->text();
+		if (menuVoicePortInDev->text())
+			vscDevice[0] = menuVoicePortInDev->text();
 		if (menuPortOutDev->text())
 			scDevice[1] = menuPortOutDev->text();
+		if (menuVoicePortOutDev->text())
+			vscDevice[1] = menuVoicePortOutDev->text();
 
 		{
 			Fl_Menu_* menus[2] = { menuInSampleRate, menuOutSampleRate };
@@ -508,12 +589,15 @@ void sound_update(unsigned idx)
 #if USE_PULSEAUDIO
 	case SND_IDX_PULSE:
 		inpPulseServer->activate();
+		inpVoicePulseServer->activate();
 		scDevice[0] = scDevice[1] = inpPulseServer->value();
+		vscDevice[0] = vscDevice[1] = inpVoicePulseServer->value();
 		break;
 #endif
 
 	case SND_IDX_NULL:
 		scDevice[0] = scDevice[1] = "";
+		vscDevice[0] = vscDevice[1] = "";
 		break;
 	};
 }

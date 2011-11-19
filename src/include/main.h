@@ -50,6 +50,7 @@ extern std::string		FLMSG_ICS_tmp_dir;
 extern std::string		xmlfname;
 
 extern std::string	 	scDevice[2];
+extern std::string	 	vscDevice[2];
 extern PTT			*push2talk;
 
 #if USE_HAMLIB
