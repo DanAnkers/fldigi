@@ -71,6 +71,7 @@ modem		*active_modem = 0;
 cRsId		*ReedSolomon = 0;
 cDTMF		*dtmf = 0;
 SoundBase 	*scard;
+SoundBase 	*vscard;
 static int	_trx_tune;
 
 // Ringbuffer for the audio "history". A pointer into this buffer
@@ -188,7 +189,7 @@ void trx_xmit_wfall_queue(int samplerate, const double* buf, size_t len)
 void trx_trx_receive_loop()
 {
     size_t  numread;
-    int  current_samplerate;
+    int  current_samplerate, current_vsamplerate;
     assert(powerof2(SCBLOCKSIZE));
 
     if (unlikely(!active_modem)) {
@@ -203,6 +204,11 @@ void trx_trx_receive_loop()
 #endif
 
     if (unlikely(!scard)) {
+	MilliSleep(10);
+	return;
+    }
+
+    if (active_modem == ssb_modem && (!vscard)) {
 	MilliSleep(10);
 	return;
     }
@@ -224,6 +230,30 @@ void trx_trx_receive_loop()
 	return;
     }
     active_modem->rx_init();
+		if(active_modem == ssb_modem) {
+			try {
+				current_vsamplerate = active_modem->get_vsamplerate();
+				if (vscard->Open(O_WRONLY, current_vsamplerate))
+			    REQ(sound_update, progdefaults.btnAudioIOis);
+	    }
+			catch (const SndException& e) {
+				LOG_ERROR("%s. line: %i", e.what(), __LINE__);
+				put_status(e.what(), 5);
+				vscard->Close();
+				if (e.error() == EBUSY && progdefaults.btnAudioIOis == SND_IDX_PORT) {
+	    		sound_close();
+	    		sound_init();
+				}
+				MilliSleep(1000);
+				return;
+    	}
+
+			if(vscard) {
+    		active_modem->voicerx_init(vscard);
+			} else {
+				LOG_ERROR("Voice soundcard doesn't exist at line %l", __LINE__);
+			}
+		}
 
     ringbuffer<double>::vector_type rbvec[2];
     rbvec[0].buf = rbvec[1].buf = 0;
@@ -284,13 +314,15 @@ void trx_trx_receive_loop()
 	}
 	if (scard->must_close(O_RDONLY))
 		scard->Close(O_RDONLY);
+	if ((active_modem == ssb_modem) && vscard->must_close(O_WRONLY))
+		vscard->Close(O_WRONLY);
 }
 
 
 //=============================================================================
 void trx_trx_transmit_loop()
 {
-	int  current_samplerate;
+	int  current_samplerate, current_vsamplerate;
 	if (!scard) {
 		MilliSleep(10);
 		return;
@@ -307,11 +339,26 @@ void trx_trx_transmit_loop()
 		    return;
 		}
 
-		if (active_modem != ssb_modem) {
-			push2talk->set(true);
-			REQ(&waterfall::set_XmtRcvBtn, wf, true);
+		if (active_modem == ssb_modem) {
+			try {
+		    current_vsamplerate = active_modem->get_vsamplerate();
+		    vscard->Open(O_RDONLY, current_vsamplerate);
+			}
+			catch (const SndException& e) {
+		    LOG_ERROR("%s. line: %i", e.what(), __LINE__);
+		    put_status(e.what(), 1);
+		    MilliSleep(10);
+		    return;
+			}
 		}
+
+		push2talk->set(true);
+		REQ(&waterfall::set_XmtRcvBtn, wf, true);
+
 		active_modem->tx_init(scard);
+		if (active_modem == ssb_modem) {
+			active_modem->voicetx_init();
+		}
 
 		if ((active_modem != null_modem && 
 			active_modem != ssb_modem &&
@@ -340,6 +387,10 @@ void trx_trx_transmit_loop()
 		scard->flush();
 		if (scard->must_close(O_WRONLY))
 			scard->Close(O_WRONLY);
+
+		vscard->flush();
+		if (vscard->must_close(O_RDONLY))
+			vscard->Close(O_RDONLY);
 
 	} else
 		MilliSleep(10);
@@ -507,20 +558,24 @@ void trx_reset_loop()
 #if USE_OSS
 	case SND_IDX_OSS:
 		scard = new SoundOSS(scDevice[0].c_str());
+		vscard = new SoundOSS(vscDevice[1].c_str());
 		break;
 #endif
 #if USE_PORTAUDIO
 	case SND_IDX_PORT:
 	    scard = new SoundPort(scDevice[0].c_str(), scDevice[1].c_str());
+	    vscard = new SoundPort(vscDevice[1].c_str(), vscDevice[0].c_str());
 		break;
 #endif
 #if USE_PULSEAUDIO
 	case SND_IDX_PULSE:
 		scard = new SoundPulse(scDevice[0].c_str());
+		vscard = new SoundPulse(vscDevice[1].c_str());
 		break;
 #endif
 	case SND_IDX_NULL:
 		scard = new SoundNull;
+		vscard = new SoundNull;
 		break;
 	default:
 		abort();
@@ -547,6 +602,7 @@ void trx_start(void)
 	}
 	
 	if (scard) delete scard;
+	if (vscard) delete vscard;
 	if (ReedSolomon) delete ReedSolomon;
 	if (dtmf) delete dtmf;
 
@@ -555,20 +611,24 @@ void trx_start(void)
 #if USE_OSS
 	case SND_IDX_OSS:
 		scard = new SoundOSS(scDevice[0].c_str());
+		vscard = new SoundOSS(scDevice[1].c_str());
 		break;
 #endif
 #if USE_PORTAUDIO
 	case SND_IDX_PORT:
 		scard = new SoundPort(scDevice[0].c_str(), scDevice[1].c_str());
+		vscard = new SoundPort(vscDevice[1].c_str(), vscDevice[0].c_str());
 		break;
 #endif
 #if USE_PULSEAUDIO
 	case SND_IDX_PULSE:
 		scard = new SoundPulse(scDevice[0].c_str());
+		vscard = new SoundPulse(vscDevice[1].c_str());
 		break;
 #endif
 	case SND_IDX_NULL:
 		scard = new SoundNull;
+		vscard = new SoundNull;
 		break;
 	default:
 		abort();
@@ -630,6 +690,10 @@ void trx_close()
 	if (scard) {
 		delete scard;
 		scard = 0;
+	}
+	if (vscard) {
+		delete vscard;
+		vscard = 0;
 	}
 }
 

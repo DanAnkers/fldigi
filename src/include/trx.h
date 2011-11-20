@@ -51,6 +51,7 @@ extern modem		*active_modem;
 extern cRsId		*ReedSolomon;
 
 extern	SoundBase 	*scard;
+extern	SoundBase 	*vscard;
 
 extern  bool bHistory;
 

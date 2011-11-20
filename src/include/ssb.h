@@ -29,12 +29,17 @@
 
 class ssb : public modem
 {
+protected:
+	int txstate;
+
 public:
 	ssb();
 	~ssb();
 	void init();
 	void rx_init();
+	void voicerx_init(SoundBase *vsc);
 	void tx_init(SoundBase *sc);
+	void voicetx_init();
 	void restart();
 	int rx_process(const double *buf, int len);
 	int tx_process();

@@ -22,10 +22,12 @@ class modem : public morse {
 protected:
 	trx_mode mode;
 	SoundBase	*scard;
+	SoundBase	*vscard;
 
 	bool	stopflag;
 	int		fragmentsize;
 	int		samplerate;
+	int		vsamplerate;
 	bool	reverse;
 	int		sigsearch;
 
@@ -73,7 +75,9 @@ public:
 // these processes must be declared in the derived class
 	virtual void init();
 	virtual void tx_init (SoundBase *sc) = 0;
+	virtual void voicetx_init () {};
 	virtual void rx_init () = 0;
+	virtual void voicerx_init (SoundBase *vsc) {};
 	virtual void restart () = 0;
 	virtual int  tx_process () = 0;
 	virtual int  rx_process (const double *, int len) = 0;
@@ -106,6 +110,7 @@ public:
 	double		get_bandwidth();
 	void		set_bandwidth(double);
 	int			get_samplerate();
+	int			get_vsamplerate();
 	void		set_samplerate(int);
 	void		init_queues();
 	int			get_echo_char();

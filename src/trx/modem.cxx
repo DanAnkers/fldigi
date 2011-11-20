@@ -280,6 +280,11 @@ int modem::get_samplerate(void)
 	return samplerate;
 }
 
+int modem::get_vsamplerate(void)
+{
+	return vsamplerate;
+}
+
 void modem::set_samplerate(int smprate)
 {
 	samplerate = smprate;

@@ -33,11 +33,21 @@
 
 void ssb::tx_init(SoundBase *sc)
 {
+	scard = sc;
+}
+
+void ssb::voicetx_init()
+{
 }
 
 void ssb::rx_init()
 {
 	put_MODEstatus(mode);
+}
+
+void ssb::voicerx_init(SoundBase *vsc)
+{
+	vscard = vsc;
 }
 
 void ssb::init()
@@ -60,13 +70,16 @@ ssb::ssb()
 {
 	mode = MODE_SSB;
 	samplerate = 8000;
-	cap &= ~CAP_TX;
+	vsamplerate = 8000;
 	restart();
 }
 
 // dummy process
 int ssb::rx_process(const double *buf, int len)
 {
+	double wbuf = buf[0];
+	double* bufptr = &wbuf;
+	vscard->Write(bufptr, len);
 	return 0;
 }
 
@@ -77,5 +90,18 @@ int ssb::rx_process(const double *buf, int len)
 
 int ssb::tx_process()
 {
-	return -1;
+	int len=512;
+	float buffer[ len ];
+	double dbuffer[ len ];
+
+	if(stopflag) {
+		return -1;
+	}
+
+	scard->Read(buffer, len);
+	for(int i=0 ; i < len ; i++) {
+		dbuffer[i] = (double) buffer[i];
+	}
+	ModulateXmtr(dbuffer, len);
+	return 0;
 }
