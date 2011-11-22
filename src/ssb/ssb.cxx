@@ -98,7 +98,7 @@ int ssb::tx_process()
 		return -1;
 	}
 
-	scard->Read(buffer, len);
+	vscard->Read(buffer, len);
 	for(int i=0 ; i < len ; i++) {
 		dbuffer[i] = (double) buffer[i];
 	}
