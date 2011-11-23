@@ -267,7 +267,7 @@ extern "C" { const char* pa_get_library_version(void); };
 class SoundPulse : public SoundBase
 {
 public:
-	SoundPulse(const char* dev);
+	SoundPulse(const char* dev, char* name);
 	virtual ~SoundPulse();
 
 	int	Open(int mode, int freq = 8000);
@@ -298,6 +298,7 @@ private:
 	float* fbuf;
 	float* snd_buffer;
 	float* src_buffer;
+	char* descr;
 };
 
 class SndPulseException : public SndException

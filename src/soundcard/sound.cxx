@@ -1565,7 +1565,7 @@ void SoundPort::init_hostapi_ext(void)
 
 #if USE_PULSEAUDIO
 
-SoundPulse::SoundPulse(const char *dev)
+SoundPulse::SoundPulse(const char *dev, char* name)
 {
 	sd[0].stream = sd[1].stream = 0;
 	sd[0].dir = PA_STREAM_RECORD; sd[1].dir = PA_STREAM_PLAYBACK;
@@ -1581,6 +1581,7 @@ SoundPulse::SoundPulse(const char *dev)
 	sd[1].buffer_attrs.tlength = SCBLOCKSIZE * sizeof(float);
 
 	tx_src_data = new SRC_DATA;
+	descr = name;
 
 	snd_buffer = new float[sd[0].stream_params.channels * SND_BUF_LEN];
 	src_buffer = new float[sd[1].stream_params.channels * SND_BUF_LEN];
@@ -1623,7 +1624,7 @@ int SoundPulse::Open(int mode, int freq)
 			continue;
 
 		sd[i].stream_params.rate = freq;
-		snprintf(sname, sizeof(sname), "%s (%u)", (i ? "playback" : "capture"), getpid());
+		snprintf(sname, sizeof(sname), "%s %s (%u)", descr, (i ? "playback" : "capture"), getpid());
 		setenv("PULSE_PROP_application.icon_name", PACKAGE_TARNAME, 1);
 		sd[i].stream = pa_simple_new(server, main_window_title.c_str(), sd[i].dir, NULL,
 					     sname, &sd[i].stream_params, NULL,

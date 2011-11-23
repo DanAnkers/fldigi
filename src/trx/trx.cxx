@@ -569,8 +569,8 @@ void trx_reset_loop()
 #endif
 #if USE_PULSEAUDIO
 	case SND_IDX_PULSE:
-		scard = new SoundPulse(scDevice[0].c_str());
-		vscard = new SoundPulse(vscDevice[1].c_str());
+		scard = new SoundPulse(scDevice[0].c_str(), "Rig");
+		vscard = new SoundPulse(vscDevice[1].c_str(), "Voice");
 		break;
 #endif
 	case SND_IDX_NULL:
@@ -622,8 +622,8 @@ void trx_start(void)
 #endif
 #if USE_PULSEAUDIO
 	case SND_IDX_PULSE:
-		scard = new SoundPulse(scDevice[0].c_str());
-		vscard = new SoundPulse(vscDevice[1].c_str());
+		scard = new SoundPulse(scDevice[0].c_str(), "Rig");
+		vscard = new SoundPulse(vscDevice[1].c_str(), "Voice");
 		break;
 #endif
 	case SND_IDX_NULL:
