@@ -257,6 +257,7 @@ fldigi_SOURCES += \
 	thor/thorvaricode.cxx \
 	dominoex/dominoex.cxx \
 	dominoex/dominovar.cxx \
+	dv/codecs/lpc/openlpc.fixed.c \
 	feld/feld.cxx \
 	feld/feldfonts.cxx \
 	fft/fft.cxx \
@@ -343,6 +344,7 @@ fldigi_SOURCES += \
 	include/notify.h \
 	include/notifydialog.h \
 	include/olivia.h \
+	include/openlpc.h \
 	include/pkg.h \
 	include/picture.h \
 	include/progress.h \
