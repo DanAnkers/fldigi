@@ -122,12 +122,12 @@ static const char szProsigns[] = "~|%|&|+|=|{|}|<|>|[|]| ";} {}
     label {Fldigi configuration} open
     xywh {134 118 505 460} type Double color 45 selection_color 51 labelsize 18 align 80 non_modal visible
   } {
-    Fl_Tabs tabsConfigure {open selected
+    Fl_Tabs tabsConfigure {open
       xywh {0 0 505 430} color 50 selection_color 50
     } {
       Fl_Group tabOperator {
         label Operator
-        callback {progdefaults.changed = true;} open
+        callback {progdefaults.changed = true;} open selected
         tooltip {Operator information} xywh {5 25 500 345} when 1
       } {
         Fl_Group {} {
@@ -3018,22 +3018,9 @@ progdefaults.changed = true;}
         Fl_Tabs tabsSoundCard {open
           xywh {0 25 505 405} selection_color 50
         } {
-          Fl_Group Voice {
-            label Voice open
-            xywh {0 55 500 375}
-          } {
-            Fl_Group VoiceEnable {open
-              xywh {0 55 500 335}
-            } {
-              Fl_Check_Button btnVoice {
-                label {Enable Voice Modes}
-                xywh {15 65 25 25} down_box DOWN_BOX
-              }
-            }
-          }
           Fl_Group tabAudio {
             label Devices open
-            xywh {5 50 500 380} hide
+            xywh {5 50 500 380}
           } {
             Fl_Group AudioOSS {open
               xywh {10 60 490 85} box ENGRAVED_FRAME
@@ -3139,14 +3126,14 @@ http://www.pulseaudio.org/wiki/ServerStrings} xywh {265 340 225 25}
               }
             }
             Fl_Group AudioNull {
-              xywh {10 375 490 15} box ENGRAVED_FRAME
+              xywh {10 375 490 50} box ENGRAVED_FRAME
             } {
               Fl_Round_Button {btnAudioIO[3]} {
                 label {File I/O only}
                 callback {sound_update(SND_IDX_NULL);
 progdefaults.changed = true;
 resetSoundCard();}
-                tooltip {NO AUDIO DEVICE AVAILABLE (or testing)} xywh {21 385 100 5} down_box DOWN_BOX selection_color 1
+                tooltip {NO AUDIO DEVICE AVAILABLE (or testing)} xywh {21 375 100 40} down_box DOWN_BOX selection_color 1
               }
             }
           }

@@ -2399,12 +2399,6 @@ Fl_Group *tabSoundCard=(Fl_Group *)0;
 
 Fl_Tabs *tabsSoundCard=(Fl_Tabs *)0;
 
-Fl_Group *Voice=(Fl_Group *)0;
-
-Fl_Group *VoiceEnable=(Fl_Group *)0;
-
-Fl_Check_Button *btnVoice=(Fl_Check_Button *)0;
-
 Fl_Group *tabAudio=(Fl_Group *)0;
 
 Fl_Group *AudioOSS=(Fl_Group *)0;
@@ -6064,17 +6058,7 @@ an merging"));
         tabSoundCard->hide();
         { tabsSoundCard = new Fl_Tabs(0, 25, 505, 405);
           tabsSoundCard->selection_color(FL_LIGHT1);
-          { Voice = new Fl_Group(0, 55, 500, 375, _("Voice"));
-            { VoiceEnable = new Fl_Group(0, 55, 500, 335);
-              { btnVoice = new Fl_Check_Button(15, 65, 25, 25, _("Enable Voice Modes"));
-                btnVoice->down_box(FL_DOWN_BOX);
-              } // Fl_Check_Button* btnVoice
-              VoiceEnable->end();
-            } // Fl_Group* VoiceEnable
-            Voice->end();
-          } // Fl_Group* Voice
           { tabAudio = new Fl_Group(5, 50, 500, 380, _("Devices"));
-            tabAudio->hide();
             { AudioOSS = new Fl_Group(10, 60, 490, 85);
               AudioOSS->box(FL_ENGRAVED_FRAME);
               { btnAudioIO[0] = new Fl_Round_Button(20, 70, 53, 25, _("OSS"));
@@ -6165,9 +6149,9 @@ an merging"));
               } // Fl_Input2* inpVoicePulseServer
               AudioPulse->end();
             } // Fl_Group* AudioPulse
-            { AudioNull = new Fl_Group(10, 375, 490, 15);
+            { AudioNull = new Fl_Group(10, 375, 490, 50);
               AudioNull->box(FL_ENGRAVED_FRAME);
-              { btnAudioIO[3] = new Fl_Round_Button(21, 385, 100, 5, _("File I/O only"));
+              { btnAudioIO[3] = new Fl_Round_Button(21, 375, 100, 40, _("File I/O only"));
                 btnAudioIO[3]->tooltip(_("NO AUDIO DEVICE AVAILABLE (or testing)"));
                 btnAudioIO[3]->down_box(FL_DOWN_BOX);
                 btnAudioIO[3]->selection_color((Fl_Color)1);
