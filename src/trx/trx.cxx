@@ -208,7 +208,8 @@ void trx_trx_receive_loop()
 	return;
     }
 
-    if (active_modem == ssb_modem && (!vscard)) {
+    if ((active_modem == ssb_modem || active_modem == fdmdv_modem)
+		   && (!vscard)) {
 	MilliSleep(10);
 	return;
     }
@@ -230,7 +231,7 @@ void trx_trx_receive_loop()
 	return;
     }
     active_modem->rx_init();
-		if(active_modem == ssb_modem) {
+		if(active_modem == ssb_modem || active_modem == fdmdv_modem) {
 			try {
 				current_vsamplerate = active_modem->get_vsamplerate();
 				if (vscard->Open(O_WRONLY, current_vsamplerate))
@@ -314,7 +315,8 @@ void trx_trx_receive_loop()
 	}
 	if (scard->must_close(O_RDONLY))
 		scard->Close(O_RDONLY);
-	if ((active_modem == ssb_modem) && vscard->must_close(O_WRONLY))
+	if ((active_modem == ssb_modem || active_modem == fdmdv_modem)
+	   && vscard->must_close(O_WRONLY))
 		vscard->Close(O_WRONLY);
 }
 
@@ -339,7 +341,7 @@ void trx_trx_transmit_loop()
 		    return;
 		}
 
-		if (active_modem == ssb_modem) {
+		if (active_modem == ssb_modem || active_modem == fdmdv_modem) {
 			try {
 		    current_vsamplerate = active_modem->get_vsamplerate();
 		    vscard->Open(O_RDONLY, current_vsamplerate);
@@ -356,7 +358,7 @@ void trx_trx_transmit_loop()
 		REQ(&waterfall::set_XmtRcvBtn, wf, true);
 
 		active_modem->tx_init(scard);
-		if (active_modem == ssb_modem) {
+		if (active_modem == ssb_modem || active_modem == fdmdv_modem) {
 			active_modem->voicetx_init();
 		}
 
@@ -367,7 +369,8 @@ void trx_trx_transmit_loop()
 			ReedSolomon->send(true);
 
 		while (trx_state == STATE_TX) {
-			if (active_modem != ssb_modem && !progdefaults.DTMFstr.empty())
+			if (active_modem != ssb_modem && active_modem != fdmdv_modem 
+			    && !progdefaults.DTMFstr.empty())
 				dtmf->send();
 			try {
 				if (active_modem->tx_process() < 0)

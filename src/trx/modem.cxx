@@ -119,6 +119,8 @@ modem *throbx1_modem = 0;
 modem *throbx2_modem = 0;
 modem *throbx4_modem = 0;
 
+modem *fdmdv_modem = 0;
+
 modem *wwv_modem = 0;
 modem *anal_modem = 0;
 modem *ssb_modem = 0;

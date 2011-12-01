@@ -95,6 +95,7 @@
 #include "wwv.h"
 #include "analysis.h"
 #include "ssb.h"
+#include "fdmdv.h"
 
 #include "ascii.h"
 #include "globals.h"
@@ -1150,6 +1151,11 @@ void init_modem(trx_mode mode, int freq)
 		startup_modem(*mode_info[mode].modem ? *mode_info[mode].modem :
 			      *mode_info[mode].modem = new ssb, freq);
 		break;
+
+  case MODE_FDMDV:
+    startup_modem(*mode_info[mode].modem ? *mode_info[mode].modem :
+            *mode_info[mode].modem = new fdmdv(mode), freq);
+    break;
 
 	default:
 		LOG_ERROR("Unknown mode: %" PRIdPTR, mode);
@@ -3133,6 +3139,7 @@ Fl_Menu_Item menu_[] = {
 {0,0,0,0,0,0,0,0,0},
 
 { mode_info[MODE_NULL].name, 0, cb_init_mode, (void *)MODE_NULL, 0, FL_NORMAL_LABEL, 0, 14, 0},
+{ mode_info[MODE_FDMDV].name, 0, cb_init_mode, (void *)MODE_FDMDV, 0, FL_NORMAL_LABEL, 0, 14, 0},
 { mode_info[MODE_SSB].name, 0, cb_init_mode, (void *)MODE_SSB, 0, FL_NORMAL_LABEL, 0, 14, 0},
 
 { mode_info[MODE_WWV].name, 0, cb_init_mode, (void *)MODE_WWV, 0, FL_NORMAL_LABEL, 0, 14, 0},
@@ -4931,6 +4938,7 @@ Fl_Menu_Item alt_menu_[] = {
 {0,0,0,0,0,0,0,0,0},
 
 { mode_info[MODE_NULL].name, 0, cb_init_mode, (void *)MODE_NULL, 0, FL_NORMAL_LABEL, 0, 14, 0},
+{ mode_info[MODE_FDMDV].name, 0, cb_init_mode, (void *)MODE_FDMDV, 0, FL_NORMAL_LABEL, 0, 14, 0},
 { mode_info[MODE_SSB].name, 0, cb_init_mode, (void *)MODE_SSB, 0, FL_NORMAL_LABEL, 0, 14, 0},
 
 { mode_info[MODE_WWV].name, 0, cb_init_mode, (void *)MODE_WWV, 0, FL_NORMAL_LABEL, 0, 14, 0},

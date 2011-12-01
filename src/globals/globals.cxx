@@ -120,6 +120,8 @@ const struct mode_info_t mode_info[NUM_MODES] = {
 
 	{ MODE_PACKET, &pkt_modem, "PACKET", "Packet", "", "PKT", "PKT" },
 
+  { MODE_FDMDV, &fdmdv_modem, "FDMDV", "FDMDV", "", "FDMDV", "" },
+	
 	{ MODE_SSB, &ssb_modem, "SSB", "SSB", "", "SSB", "" },
 	{ MODE_WWV, &wwv_modem, "WWV", "WWV", "", "", "" },
 	{ MODE_ANALYSIS, &anal_modem, "ANALYSIS", "Freq Analysis", "", "", "" }

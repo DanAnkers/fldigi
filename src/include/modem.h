@@ -265,6 +265,8 @@ extern modem *throbx1_modem;
 extern modem *throbx2_modem;
 extern modem *throbx4_modem;
 
+extern modem *fdmdv_modem;
+
 extern modem *wwv_modem;
 extern modem *anal_modem;
 extern modem *ssb_modem;
