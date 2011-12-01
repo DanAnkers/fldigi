@@ -50,9 +50,6 @@ void fdmdv::tx_init(SoundBase *sc)
 
 void fdmdv::voicetx_init()
 {
-	openlpc_encoder_state* voice_coder;
-	voice_coder = create_openlpc_encoder_state();
-	init_openlpc_encoder_state(voice_coder, OPENLPC_FRAMESIZE_1_4);
 }
 
 void fdmdv::rx_init()
@@ -194,6 +191,9 @@ int fdmdv::tx_process()
 	// The modulated buffer is sent to the rig soundcard
 	double modulatedbuffer[ len ];
 
+	openlpc_encoder_state* voice_coder;
+	voice_coder = create_openlpc_encoder_state();
+	init_openlpc_encoder_state(voice_coder, OPENLPC_FRAMESIZE_1_4);
 	// Get a 40ms voice sample and convert from floats to shorts
 	vscard->Read(voice_buffer, len);
 	for(int i=0 ; i < len ; i++) {
