@@ -39,6 +39,8 @@
 #define FDMDV_CODEC_BYTES ceil(FDMDV_CODEC_BITS/8)
 #define FDMDV_SPACING			75	//75Hz spacing between carriers
 
+using namespace std;
+
 void fdmdv::tx_init(SoundBase *sc)
 {
 	scard = sc;
@@ -186,7 +188,7 @@ int fdmdv::tx_process()
 	int len = OPENLPC_FRAMESIZE_1_4;
 	float voice_buffer[ len ];
 	short sbuffer[ len ];
-	unsigned char encodedbuffer[ FDMDV_CODEC_BITS + FDMDV_DATA_BITS ]; // One bit is stored in each char
+	unsigned char encodedbuffer[ OPENLPC_ENCODED_FRAME_SIZE ];
 	int encodedlen;
 	// The modulated buffer is sent to the rig soundcard
 	double modulatedbuffer[ len ];
@@ -208,33 +210,42 @@ int fdmdv::tx_process()
 	
 	// Encode the voice
 	encodedlen = openlpc_encode(sbuffer, encodedbuffer, voice_coder);
-	if(encodedlen != 55) {
+	if(encodedlen != OPENLPC_ENCODED_FRAME_SIZE) {
 	  // We've got a problem!
   }
-	// This fills encodedbuffer[0] through encodedbuffer[55] with 1 bit of voice data
-	// per element
+	// This fills encodedbuffer[0] through encodedbuffer[6] with voice data
+	// Convert these into a bitset:
+	bitset<FDMDV_CODEC_BITS + FDMDV_DATA_BITS> encodedbits;
+	for(unsigned int i = 0; i < encodedbits.size(); i++)
+	{
+	  int byte = floor(i/8); int bit = i%8;
+		encodedbits[i] = (encodedbuffer[byte]>>bit) & 1;
+	}
 
-	// Add the next 2 data bits into encodedbuffer[56] and [57]
-  encodedbuffer[56] = varicoded_message[message_pointer++];
-  encodedbuffer[57] = varicoded_message[message_pointer++];
+	// Add the 2 data bits into the LSBs of encodedbits
+  encodedbits[FDMDV_CODEC_BITS] = varicoded_message[message_pointer++];
+  encodedbits[FDMDV_CODEC_BITS + 1] = varicoded_message[message_pointer++];
 	if (message_pointer >= message_length) message_pointer = 0;
 
 	// Create carriers for 2 frames.
 	// BPSK carrier first, then QPSK two at a time
-	// I'm assuming encodedbuffer[0] is the LSB, and that the data bits
-	// go at MSB and MSB-1 of the second frame
 	// The first frame goes into the first half of modulatedbuffer
-	// The second frame goes into the first half
+	// The second frame goes into the second half
 	for (int i = 0; i < 2; i++) {
 		fdmdv_write_bpsk(i == 0 ? FDMDV_FRAME_0:FDMDV_FRAME_1, FDMDV_SPACING*7, (double*) (modulatedbuffer + i*len/2), len/2);
 		for(int carrier=0 ; carrier < 7 ; carrier++) {
 			int freq_offset = FDMDV_SPACING*carrier; // Carrier spacing is 75Hz
 			char frame_offset = 28*i;
-			char symbol = (encodedbuffer[ 2*carrier + frame_offset ] << 1) +
-			               encodedbuffer[ 2*carrier + frame_offset + 1 ];
+
+			// Each symbol is 2 bits
+			// Carrier 0 uses bits 0 and 1
+			// Carrier 1 uses bits 2 and 3
+			// etc.
+			char symbol = (char)((encodedbits[2*carrier+frame_offset]<<1)
+			                     +encodedbits[2*carrier+frame_offset+1]);
 			fdmdv_write_qpsk(symbol, freq_offset, (double*) (modulatedbuffer + i*len/2), len/2);
-			symbol = (encodedbuffer[ 2*(carrier+7) + frame_offset ] << 1) +
-			          encodedbuffer[ 2*(carrier+7) + frame_offset + 1 ];
+			symbol = (char)((encodedbits[2*(carrier+7)+frame_offset]<<1)
+			                     +encodedbits[2*(carrier+7)+frame_offset+1]);
 			freq_offset += FDMDV_SPACING * 8;
     	fdmdv_write_qpsk(symbol, freq_offset, (double*) (modulatedbuffer + i*len/2), len/2);
   	}
