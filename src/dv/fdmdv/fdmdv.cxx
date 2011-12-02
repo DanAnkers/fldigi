@@ -218,7 +218,8 @@ int fdmdv::tx_process()
 	bitset<FDMDV_CODEC_BITS + FDMDV_DATA_BITS> encodedbits;
 	for(unsigned int i = 0; i < encodedbits.size(); i++)
 	{
-	  int byte = floor(i/8); int bit = i%8;
+		int byte = floor(i/8); // Byte 0 is the most significant
+		int bit = 7-(i%8);     // Bit 7 is the most significant
 		encodedbits[i] = (encodedbuffer[byte]>>bit) & 1;
 	}
 
