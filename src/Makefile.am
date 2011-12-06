@@ -259,6 +259,7 @@ fldigi_SOURCES += \
 	dominoex/dominovar.cxx \
 	dv/codecs/lpc/openlpc.fixed.c \
 	dv/fdmdv/fdmdv.cxx \
+	dv/fdmdv/fdmdvvaricode.cxx \
 	dv/fdmdv/psk-mod.cxx \
 	feld/feld.cxx \
 	feld/feldfonts.cxx \
@@ -299,6 +300,7 @@ fldigi_SOURCES += \
 	include/dominoex.h \
 	include/dominovar.h \
 	include/fdmdv.h \
+	include/fdmdvvaricode.h \
 	include/feld.h \
 	include/fft.h \
 	include/fftfilt.h \

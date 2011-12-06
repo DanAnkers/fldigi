@@ -33,29 +33,33 @@
 #define FDMDV_FRAME_1 1
 
 #define CARRIER_BW 75
+#define CARRIERS	15
+#define BUFFER_FRAMES	50 // Frames of date to buffer. Must be enough for rx_process not to overflow the buffer.
 
 class fdmdv : public psk {
 private:
 	char varicoded_message[800]; // Each char stores 1 bit. Message can be 80 characters, varicode can be up to 8 bits plus 2 inter-character bits
 	int message_length;
 	int message_pointer;
-	openlpc_encoder_state* voice_coder;
-	char bpsk_bit;
+	openlpc_encoder_state* voice_encoder;
+	openlpc_decoder_state* voice_decoder;
+	unsigned char bpsk_bit;
+	unsigned char data_fifo[CARRIERS*BUFFER_FRAMES];
+	int fifo_read_ptr;
+	int fifo_write_ptr;
 
 	void fdmdv_write_bpsk(int sym, int carrier, double* buffer, int len);
 	void fdmdv_write_qpsk(int sym, int carrier, double* buffer, int len);
 	void psk_init(void);
+	void fifo_process(void);
 
 // PSK stuff
         int                             symbollen;
         bool                    _qpsk;
         bool                    _pskr;
-        double                  phaseacc;
-        complex                 prevsymbol;
+        double                  phaseacc[CARRIERS];
+        complex                 prevsymbol[CARRIERS];
         unsigned int            shreg;
-        //FEC: 2nd stream
-        unsigned int            shreg2;
-        int                     numinterleavers; //interleaver size (speed dependant)
 // rx variables & functions
 
         C_FIR_filter            *fir1;
@@ -77,28 +81,17 @@ private:
 
         encoder                 *enc;
         viterbi                 *dec;
-        //PSKR modes - 2nd Viterbi decoder and 2 receive de-interleaver for comparison
-        viterbi                 *dec2;
-        interleave              *Rxinlv;
-        interleave              *Rxinlv2;
-        interleave              *Txinlv;
-        unsigned int    bitshreg;
+        unsigned int    bitshreg[CARRIERS];
         int                     rxbitstate;
-        //PSKR modes - Soft decoding
-        unsigned char           symbolpair[2];
-        double                  fecmet;
-        double                  fecmet2;
 
-        double                  phase;
+        double                  phase[CARRIERS];
         double                  freqerr;
         int                             bits;
-        double                  bitclk;
+        double                  bitclk[CARRIERS];
         double                  syncbuf[16];
         double                  scope_pipe[2*PipeLen];//[PipeLen];
         unsigned int    pipeptr;
         unsigned int    dcdshreg;
-        //PSKR modes - 2nd stream
-        unsigned int            dcdshreg2;
 
         int                     dcd;
         int                             dcdbits;
@@ -108,7 +101,7 @@ private:
         viewpsk*                pskviewer;
         pskeval*                evalpsk;
 
-        void                    rx_symbol(complex symbol);
+        unsigned char           rx_symbol(complex symbol, char type, int carrier);
         void                    rx_bit(int bit);
         void                    rx_bit2(int bit);
         void                    rx_qpsk(int bits);
@@ -121,12 +114,6 @@ private:
         double                  E1, E2, E3;
         double                  afcmetric;
         
-        //PSKR modes
-        bool                    firstbit;
-        bool                    startpreamble;
-
-        
-//      complex thirdorder;
 // tx variables & functions
         double                  *tx_shape;
         int                     preamble;
@@ -144,8 +131,6 @@ private:
         void                    initSN_IMD();
         void                    resetSN_IMD();
         void                    calcSN_IMD(complex z);
-        //PSKR modes - for Tx interleaver priming
-        void                    clearbits();
 
 
 protected:

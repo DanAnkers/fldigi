@@ -34,11 +34,11 @@ void fdmdv::fdmdv_write_qpsk(int sym, int carrier, double* buffer, int len)
                 ival = shapeA * symbol.real();
                 qval = shapeA * symbol.imag();
 
-                buffer[i] += ival * cos(phaseacc) + qval * sin(phaseacc);
+                buffer[i] += ival * cos(phaseacc[carrier]) + qval * sin(phaseacc[carrier]);
 
-                phaseacc += delta;
-                if (phaseacc > M_PI)
-                        phaseacc -= 2.0 * M_PI;
+                phaseacc[carrier] += delta;
+                if (phaseacc[carrier] > M_PI)
+                        phaseacc[carrier] -= 2.0 * M_PI;
         }
 }
 
@@ -67,10 +67,10 @@ void fdmdv::fdmdv_write_bpsk(int sym, int carrier, double* buffer, int len)
                 ival = shapeA * symbol.real();
                 qval = shapeA * symbol.imag();
 
-                buffer[i] += ival * cos(phaseacc) + qval * sin(phaseacc);
+                buffer[i] += ival * cos(phaseacc[carrier]) + qval * sin(phaseacc[carrier]);
 
-                phaseacc += delta;
-                if (phaseacc > M_PI)
-                        phaseacc -= 2.0 * M_PI;
+                phaseacc[carrier] += delta;
+                if (phaseacc[carrier] > M_PI)
+                        phaseacc[carrier] -= 2.0 * M_PI;
         }
 }
