@@ -5,3 +5,4 @@ Test on Portaudio
 Test on Pulseaudio
 Test with varying sample rates
 All modes go into XMLRPC
+Make sure logging works
