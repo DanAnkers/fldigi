@@ -77,9 +77,11 @@ ssb::ssb()
 // dummy process
 int ssb::rx_process(const double *buf, int len)
 {
-	double wbuf = buf[0];
-	double* bufptr = &wbuf;
-	vscard->Write(bufptr, len);
+	// FIXME: Handle errors here
+	double* tmpbuf = (double*) calloc(len, sizeof(double));
+	memcpy(tmpbuf, buf, len*sizeof(double));
+	vscard->Write(tmpbuf, len);
+	free(tmpbuf);
 	return 0;
 }
 
