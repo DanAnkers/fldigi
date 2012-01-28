@@ -1,8 +1,8 @@
 // ----------------------------------------------------------------------------
 // fdmdv.cxx  --  fdmdv modem
 //
-// Copyright (C) 2010
-//		Dave Freese, W1HKJ
+// Copyright (C) 2012
+//		Daniel Ankers, MD1CLV
 //
 // This file is part of fldigi.
 //
@@ -236,7 +236,7 @@ int fdmdv::rx_process(const double *buf, int len)
 					data_fifo[fifo_write_ptr++] = rx_symbol(z2, carrier==BPSK_CARRIER?BPSK:QPSK, carrier);
 					if(fifo_write_ptr == fifo_read_ptr)
 					{ //Buffer overflow
-						//Send an error message
+						printf("Overflow\n");
 					}
 					if(fifo_write_ptr == CARRIERS*BUFFER_FRAMES)
 						fifo_write_ptr = 0;
@@ -280,11 +280,13 @@ void fdmdv::fifo_process(void)
 		// This shouldn't happen - it means that either the write buffer or
 		// the read buffer is in the wrong place
 		// Log an error and return
+		printf("Buffer appears to be in the wrong place\n");
 		return;
 	}
 	if(symbols_to_process < 2*CARRIERS)
 	{
 		// We've been called without a full frame of data to process!
+		printf("We don't have a full frame of data\n");
 		return;
 	}
 
