@@ -189,20 +189,27 @@ fdmdv::fdmdv(trx_mode pskmode) : psk(pskmode)
 // Demodulate -> Decode -> Play/Display
 int fdmdv::rx_process(const double *buf, int len)
 {
-	double delta;
+	double delta[CARRIERS];
 	complex z, z2;
+	const double* orig_buf = buf;
+	int orig_len = len;
+	int bit_count[CARRIERS];
 
 	voice_decoder = create_openlpc_decoder_state();
 	init_openlpc_decoder_state(voice_decoder, OPENLPC_FRAMESIZE_1_4);
 
-	while (len-- > 0) {
-		for(int carrier = 0; carrier < 15; carrier++)
-		{
-			delta = TWOPI * (frequency + carrier * FDMDV_SPACING) / samplerate;
+	for(int carrier = 0; carrier < CARRIERS; carrier++)
+	{
+		delta[carrier] = TWOPI * (frequency + carrier * FDMDV_SPACING) / samplerate;
+		buf = orig_buf;
+		len = orig_len;
+		bit_count[carrier] = 0;
+		while (len-- > 0) {
 			// Mix with the internal NCO
 			z = complex ( *buf * cos(phaseacc[carrier]), *buf * sin(phaseacc[carrier]) );
 
-			phaseacc[carrier] += delta;
+			buf++;
+			phaseacc[carrier] += delta[carrier];
 			if (phaseacc[carrier] > M_PI)
 				phaseacc[carrier] -= TWOPI;
 
@@ -226,25 +233,31 @@ int fdmdv::rx_process(const double *buf, int len)
 				sum = (ampsum == 0 ? 0 : sum / ampsum);
 
 				bitclk[carrier] -= sum / 5.0;
-				// Bit Clock - this should be synchronised over all carriers (?)
-				// but we track per carrier just in case
 				bitclk[carrier] += 1;
 
 				if (bitclk[carrier] < 0) bitclk[carrier] += 16.0;
 				if (bitclk[carrier] >= 16.0) {
+					int fifo_write_pos = fifo_write_ptr + carrier + CARRIERS*bit_count[carrier];
+					bit_count[carrier] += 1;
 					bitclk[carrier] -= 16.0;
-					data_fifo[fifo_write_ptr++] = rx_symbol(z2, carrier==BPSK_CARRIER?BPSK:QPSK, carrier);
-					if(fifo_write_ptr == fifo_read_ptr)
+					if(fifo_write_pos == fifo_read_ptr)
 					{ //Buffer overflow
 						printf("Overflow\n");
 					}
-					if(fifo_write_ptr == CARRIERS*BUFFER_FRAMES)
-						fifo_write_ptr = 0;
+					if(fifo_write_pos >= CARRIERS*BUFFER_FRAMES)
+						fifo_write_pos -= CARRIERS*BUFFER_FRAMES;
+					data_fifo[fifo_write_pos] = rx_symbol(z2, carrier==BPSK_CARRIER?BPSK:QPSK, carrier);
 				}
 			}
 		}
-		buf++;
 	}
+	for(int carrier = 1; carrier < CARRIERS; carrier++) {
+	  if(bit_count[carrier] != bit_count[carrier-1])
+			printf("Difference between %d (%d) and %d (%d)\n", carrier, bit_count[carrier], carrier-1, bit_count[carrier-1]);
+	}
+	fifo_write_ptr += CARRIERS*bit_count[14];
+	if(fifo_write_ptr >= CARRIERS*BUFFER_FRAMES)
+		fifo_write_ptr = 0;
 	fifo_process();
 
 	return 0;
@@ -280,7 +293,7 @@ void fdmdv::fifo_process(void)
 		// This shouldn't happen - it means that either the write buffer or
 		// the read buffer is in the wrong place
 		// Log an error and return
-		fprintf("Buffer appears to be in the wrong place - we have %d symbols\n", symbols_to_process);
+		printf("Buffer appears to be in the wrong place - we have %d symbols\n", symbols_to_process);
 		return;
 	}
 	if(symbols_to_process < 2*CARRIERS)

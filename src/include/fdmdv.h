@@ -34,7 +34,7 @@
 
 #define CARRIER_BW 75
 #define CARRIERS	15
-#define BUFFER_FRAMES	50 // Frames of date to buffer. Must be enough for rx_process not to overflow the buffer.
+#define BUFFER_FRAMES	1024 // Frames of date to buffer. Must be enough for rx_process not to overflow the buffer.
 
 class fdmdv : public psk {
 private:
