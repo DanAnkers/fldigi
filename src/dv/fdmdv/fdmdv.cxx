@@ -280,7 +280,7 @@ void fdmdv::fifo_process(void)
 		// This shouldn't happen - it means that either the write buffer or
 		// the read buffer is in the wrong place
 		// Log an error and return
-		printf("Buffer appears to be in the wrong place\n");
+		fprintf("Buffer appears to be in the wrong place - we have %d symbols\n", symbols_to_process);
 		return;
 	}
 	if(symbols_to_process < 2*CARRIERS)
